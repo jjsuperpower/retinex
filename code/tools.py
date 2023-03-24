@@ -6,17 +6,13 @@ import os.path
 
 eps=np.finfo(np.double).eps
 
-def measure_time(wrapped):
-    @wraps(wrapped)
-    def wrapper(*args,**kwds):
-        t1=time.time()
-        ret=wrapped(*args,**kwds)
-        t2=time.time()
-        print('@measure_time: {0} took {1} seconds'.format(wrapped.__name__,t2-t1))
-        return ret
-    return wrapper
+def measure_time(fun, *args, **kwargs):
+    t1=time.time()
+    ret=fun(*args,**kwargs)
+    t2=time.time()
+    print('measure_time: {0} took {1} seconds'.format(fun.__name__,t2-t1))
+    return ret
 
-@measure_time
 def my_heq(img):
     '''process heq on 3-channel image just like single-channel, most of the time 
        it's worse than func cv2_heq'''
@@ -25,7 +21,6 @@ def my_heq(img):
     gaimi=cdf/cdf.max()
     return np.floor((gaimi*255)[img.ravel()]).astype('uint8').reshape(img.shape)
 
-@measure_time
 def cv2_heq(img,yuv=False):
     '''cv2's histogram equalization can only be implemented on single channel image, 
        sometimes it doesn't work very well for 3-channel pic, you can contrast with 

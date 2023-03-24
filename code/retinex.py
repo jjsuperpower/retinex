@@ -29,10 +29,9 @@ Provided by muggledy on 2020-3-18
 '''
 
 import numpy as np
-from .tools import measure_time,eps,gauss_blur,simplest_color_balance
+from .tools import eps,gauss_blur,simplest_color_balance
 
 ### Frankle-McCann Retinex[2,3]
-@measure_time
 def retinex_FM(img,iter=4):
     '''log(OP(x,y))=1/2{log(OP(x,y))+[log(OP(xs,ys))+log(R(x,y))-log(R(xs,ys))]*}, see
        matlab code in https://www.cs.sfu.ca/~colour/publications/IST-2000/'''
@@ -69,7 +68,6 @@ def retinex_FM(img,iter=4):
     return ret.squeeze()
 
 ### Single-Scale Retinex[4]
-@measure_time
 def retinex_SSR(img,sigma):
     '''log(R(x,y))=log(S(x,y))-log(S(x,y)*G(x,y))=log(S(x,y))-log(L(x,y)), i.e. 
        r=s-l. S(x,y) and R(x,y) represent input image and retinex output image 
@@ -111,7 +109,6 @@ def retinex_SSR(img,sigma):
     return ret.squeeze()
 
 ### Multi-Scale Retinex[4]
-@measure_time
 def retinex_MSR(img,sigmas=[15,80,250],weights=None):
     '''r=∑(log(S)-log(S*G))w, MSR combines various SSR with different(or same) weights, 
        commonly we select 3 scales(sigma) and equal weights, (15,80,250) is a good 
@@ -194,7 +191,6 @@ def retinex_gimp(img,sigmas=[12,80,250],dynamic=2):
 '''
 
 ### Multi-Scale Retinex with Color Restoration, see[4] Algorithm 1 in section 4
-@measure_time
 def retinex_MSRCR(img,sigmas=[12,80,250],s1=0.01,s2=0.01):
     '''r=βlog(αI')MSR, I'=I/∑I, I is one channel of image, ∑I is the sum of all channels, 
        C:=βlog(αI') is named as color recovery factor. Last we improve previously used 
@@ -212,7 +208,6 @@ def retinex_MSRCR(img,sigmas=[12,80,250],s1=0.01,s2=0.01):
         r[...,i]=simplest_color_balance(r[...,i],0.01,0.01)
     return r.astype('uint8')
 
-@measure_time
 def retinex_gimp(img,sigmas=[12,80,250],dynamic=2):
     '''refer to the implementation in GIMP, it improves the stretch operation based 
        on MSRCR, introduces mean and standard deviation, and a dynamic parameter to 
@@ -236,7 +231,6 @@ def retinex_gimp(img,sigmas=[12,80,250],dynamic=2):
     return stretch.astype('uint8')
 
 ### Multi-Scale Retinex with Chromaticity Preservation, see[4] Algorithm 2 in section 4
-@measure_time
 def retinex_MSRCP(img,sigmas=[12,80,250],s1=0.01,s2=0.01):
     '''compare to others, simple and very fast'''
     Int=np.sum(img,axis=2)/3
@@ -249,7 +243,7 @@ def retinex_MSRCP(img,sigmas=[12,80,250],s1=0.01,s2=0.01):
     A=np.min(np.stack((255/(B+eps),Int1/(Int+eps)),axis=2),axis=-1)
     return (A[...,None]*img).astype('uint8')
 
-@measure_time
+
 def retinex_AMSR(img,sigmas=[12,80,250]):
     '''see Proposed Method ii in "An automated multi Scale Retinex with Color 
        Restoration for image enhancement"(doi: 10.1109/NCC.2012.6176791)'''
